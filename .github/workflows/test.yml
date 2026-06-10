@@ -1,4 +1,4 @@
-name: Test Download No Cookies
+name: Test Download With Cookies
 
 on:
   workflow_dispatch:
@@ -17,12 +17,25 @@ jobs:
       - name: Install yt-dlp
         run: pip install "yt-dlp[default]"
 
-      - name: Test download android client no cookies
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Write cookies
+        run: echo "${{ secrets.YT_COOKIES }}" > cookies.txt
+
+      - name: Test download
         run: |
-          yt-dlp --extractor-args "youtube:player_client=android" \
+          NODE_PATH=$(which node)
+          echo "Node path: $NODE_PATH"
+          yt-dlp --verbose \
+            --js-runtimes "node:$NODE_PATH" \
+            --cookies cookies.txt \
+            --extractor-args "youtube:player_client=web" \
             --format 18 \
             -o "/tmp/test.mp4" \
-            "${{ github.event.inputs.video_url }}"
+            "${{ github.event.inputs.video_url }}" 2>&1 | head -60
 
       - name: Check if file downloaded
         run: ls -lh /tmp/test.mp4 || echo "no file downloaded"
