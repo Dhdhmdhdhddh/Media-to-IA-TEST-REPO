@@ -27,10 +27,10 @@ jobs:
 
       - name: Configure Internet Archive
         env:
-          IA_EMAIL: ${{ secrets.IA_EMAIL }}
-          IA_PASSWORD: ${{ secrets.IA_PASSWORD }}
+          A: ${{ secrets.A }}
+          B: ${{ secrets.B }}
         run: |
-          python -c "import internetarchive as ia; ia.configure('$IA_EMAIL', '$IA_PASSWORD')"
+          python -c "import internetarchive as ia; ia.configure(\"$A\", \"$B\")"
 
       - name: Test download no cookies
         run: |
