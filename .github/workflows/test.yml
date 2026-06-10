@@ -1,0 +1,43 @@
+name: Test Download and Upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: 'YouTube URL'
+        required: true
+        type: string
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install "yt-dlp[default]" internetarchive
+
+      - name: Configure Internet Archive
+        env:
+          IA_EMAIL: ${{ secrets.IA_EMAIL }}
+          IA_PASSWORD: ${{ secrets.IA_PASSWORD }}
+        run: |
+          python -c "import internetarchive as ia; ia.configure('$IA_EMAIL', '$IA_PASSWORD')"
+
+      - name: Test download no cookies
+        run: |
+          yt-dlp --extractor-args "youtube:player_client=android" \
+            --format 18 \
+            -o "/tmp/test.mp4" \
+            "${{ github.event.inputs.video_url }}"
+
+      - name: Check file
+        run: ls -lh /tmp/test.mp4 || echo "no file downloaded"
